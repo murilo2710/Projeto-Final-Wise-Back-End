@@ -2,6 +2,7 @@ package com.wise.sistema_gestao_consultas_backend.service;
 
 import com.wise.sistema_gestao_consultas_backend.entity.Usuario;
 import com.wise.sistema_gestao_consultas_backend.repository.UsuarioRepository;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,5 +30,10 @@ public class UsuarioService {
         }
 
         return usuario;
+    }
+
+    public Usuario atualizarUltimoLogin(Usuario usuario) {
+        usuario.setUltimoLogin(LocalDateTime.now());
+        return usuarioRepository.save(usuario);
     }
 }
