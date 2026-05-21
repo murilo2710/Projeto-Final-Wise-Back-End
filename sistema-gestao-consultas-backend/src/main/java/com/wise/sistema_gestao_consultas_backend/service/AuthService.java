@@ -4,6 +4,7 @@ import com.wise.sistema_gestao_consultas_backend.dto.request.LoginRequest;
 import com.wise.sistema_gestao_consultas_backend.dto.response.LoginResponse;
 import com.wise.sistema_gestao_consultas_backend.entity.Usuario;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -11,11 +12,12 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final UsuarioService usuarioService;
+    private final PasswordEncoder passwordEncoder;
 
     public LoginResponse login(LoginRequest request) {
         Usuario usuario = usuarioService.buscarUsuarioAtivoPorEmail(request.getEmail());
 
-        if (!usuario.getSenha().equals(request.getSenha())) {
+        if (!passwordEncoder.matches(request.getSenha(), usuario.getSenha())) {
             throw new IllegalArgumentException("Email ou senha invalidos");
         }
 
