@@ -23,6 +23,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         .requestMatchers("/pacientes/**").permitAll()
                         .requestMatchers("/dentistas/**").permitAll()
+                        .requestMatchers("/especialidades/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .build();
