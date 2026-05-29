@@ -32,6 +32,7 @@ public class SecurityConfig {
                         .requestMatchers("/dentistas/**").permitAll()
                         .requestMatchers("/especialidades/**").permitAll()
                         .requestMatchers("/consultas/**").permitAll()
+                        .requestMatchers("/usuarios/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .build();
