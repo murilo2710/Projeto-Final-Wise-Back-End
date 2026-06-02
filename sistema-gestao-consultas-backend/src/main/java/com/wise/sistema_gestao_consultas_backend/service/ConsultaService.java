@@ -2,6 +2,7 @@ package com.wise.sistema_gestao_consultas_backend.service;
 
 import com.wise.sistema_gestao_consultas_backend.dto.request.CancelarConsultaRequest;
 import com.wise.sistema_gestao_consultas_backend.dto.request.ConsultaRequest;
+import com.wise.sistema_gestao_consultas_backend.dto.response.ConsultaDashboardResponse;
 import com.wise.sistema_gestao_consultas_backend.dto.response.ConsultaResponse;
 import com.wise.sistema_gestao_consultas_backend.entity.Consulta;
 import com.wise.sistema_gestao_consultas_backend.entity.Dentista;
@@ -15,6 +16,7 @@ import com.wise.sistema_gestao_consultas_backend.repository.PacienteRepository;
 import com.wise.sistema_gestao_consultas_backend.repository.UsuarioRepository;
 import com.wise.sistema_gestao_consultas_backend.security.AuthenticatedUserService;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,17 +32,60 @@ public class ConsultaService {
     private final AuthenticatedUserService authenticatedUserService;
 
     public List<ConsultaResponse> listarTodas() {
-        PerfilUsuario perfil = authenticatedUserService.getCurrentPerfil();
-        Long usuarioId = authenticatedUserService.getCurrentUserId();
-
-        List<Consulta> consultas = PerfilUsuario.ADMIN.equals(perfil)
-                ? consultaRepository.findAllComRelacionamentos()
-                : consultaRepository.findAllComRelacionamentosPorUsuario(usuarioId);
-
-        return consultas
+        return listarConsultasComPermissao()
                 .stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    public List<ConsultaResponse> relatorio(
+            Long pacienteId,
+            Long dentistaId,
+            Long usuarioId,
+            Long especialidadeId,
+            StatusConsulta status,
+            LocalDateTime dataInicio,
+            LocalDateTime dataFim
+    ) {
+        Long usuarioFiltro = PerfilUsuario.ADMIN.equals(authenticatedUserService.getCurrentPerfil())
+                ? usuarioId
+                : authenticatedUserService.getCurrentUserId();
+
+        return consultaRepository.buscarRelatorio(
+                        pacienteId,
+                        dentistaId,
+                        usuarioFiltro,
+                        especialidadeId,
+                        status,
+                        dataInicio,
+                        dataFim
+                )
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    public ConsultaDashboardResponse dashboard() {
+        List<Consulta> consultas = listarConsultasComPermissao();
+        LocalDateTime agora = LocalDateTime.now();
+
+        List<ConsultaResponse> proximasConsultas = consultas.stream()
+                .filter(consulta -> StatusConsulta.AGENDADA.equals(consulta.getStatus()))
+                .filter(consulta -> !consulta.getDataInicio().isBefore(agora))
+                .sorted(Comparator.comparing(Consulta::getDataInicio))
+                .limit(5)
+                .map(this::toResponse)
+                .toList();
+
+        return new ConsultaDashboardResponse(
+                consultas.size(),
+                contarPorStatus(consultas, StatusConsulta.AGENDADA),
+                contarPorStatus(consultas, StatusConsulta.CANCELADA),
+                contarPorStatus(consultas, StatusConsulta.REALIZADA),
+                consultas.stream().map(consulta -> consulta.getPaciente().getId()).distinct().count(),
+                consultas.stream().map(consulta -> consulta.getDentista().getId()).distinct().count(),
+                proximasConsultas
+        );
     }
 
     public ConsultaResponse buscarPorId(Long id) {
@@ -158,6 +203,23 @@ public class ConsultaService {
             throw new IllegalStateException("Usuario inativo");
         }
         return usuario;
+    }
+
+    private List<Consulta> listarConsultasComPermissao() {
+        PerfilUsuario perfil = authenticatedUserService.getCurrentPerfil();
+        Long usuarioId = authenticatedUserService.getCurrentUserId();
+
+        if (PerfilUsuario.ADMIN.equals(perfil)) {
+            return consultaRepository.findAllComRelacionamentos();
+        }
+
+        return consultaRepository.findAllComRelacionamentosPorUsuario(usuarioId);
+    }
+
+    private long contarPorStatus(List<Consulta> consultas, StatusConsulta status) {
+        return consultas.stream()
+                .filter(consulta -> status.equals(consulta.getStatus()))
+                .count();
     }
 
     private Consulta buscarConsultaComPermissao(Long id) {

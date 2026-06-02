@@ -2,11 +2,15 @@ package com.wise.sistema_gestao_consultas_backend.controller;
 
 import com.wise.sistema_gestao_consultas_backend.dto.request.CancelarConsultaRequest;
 import com.wise.sistema_gestao_consultas_backend.dto.request.ConsultaRequest;
+import com.wise.sistema_gestao_consultas_backend.dto.response.ConsultaDashboardResponse;
 import com.wise.sistema_gestao_consultas_backend.dto.response.ConsultaResponse;
+import com.wise.sistema_gestao_consultas_backend.enums.StatusConsulta;
 import com.wise.sistema_gestao_consultas_backend.service.ConsultaService;
 import jakarta.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -30,6 +35,32 @@ public class ConsultaController {
     @GetMapping
     public ResponseEntity<List<ConsultaResponse>> listarTodas() {
         return ResponseEntity.ok(consultaService.listarTodas());
+    }
+
+    @GetMapping("/relatorio")
+    public ResponseEntity<List<ConsultaResponse>> relatorio(
+            @RequestParam(required = false) Long pacienteId,
+            @RequestParam(required = false) Long dentistaId,
+            @RequestParam(required = false) Long usuarioId,
+            @RequestParam(required = false) Long especialidadeId,
+            @RequestParam(required = false) StatusConsulta status,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataInicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataFim
+    ) {
+        return ResponseEntity.ok(consultaService.relatorio(
+                pacienteId,
+                dentistaId,
+                usuarioId,
+                especialidadeId,
+                status,
+                dataInicio,
+                dataFim
+        ));
+    }
+
+    @GetMapping("/dashboard")
+    public ResponseEntity<ConsultaDashboardResponse> dashboard() {
+        return ResponseEntity.ok(consultaService.dashboard());
     }
 
     @GetMapping("/{id}")

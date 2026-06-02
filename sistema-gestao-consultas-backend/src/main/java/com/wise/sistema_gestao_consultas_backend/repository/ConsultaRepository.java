@@ -50,6 +50,30 @@ public interface ConsultaRepository extends JpaRepository<Consulta, Long> {
     );
 
     @Query("""
+            select distinct c from Consulta c
+            join fetch c.paciente
+            join fetch c.dentista
+            join fetch c.usuario
+            left join c.dentista.especialidades e
+            where (:pacienteId is null or c.paciente.id = :pacienteId)
+              and (:dentistaId is null or c.dentista.id = :dentistaId)
+              and (:usuarioId is null or c.usuario.id = :usuarioId)
+              and (:especialidadeId is null or e.id = :especialidadeId)
+              and (:status is null or c.status = :status)
+              and (:dataInicio is null or c.dataInicio >= :dataInicio)
+              and (:dataFim is null or c.dataFim <= :dataFim)
+            """)
+    List<Consulta> buscarRelatorio(
+            @Param("pacienteId") Long pacienteId,
+            @Param("dentistaId") Long dentistaId,
+            @Param("usuarioId") Long usuarioId,
+            @Param("especialidadeId") Long especialidadeId,
+            @Param("status") StatusConsulta status,
+            @Param("dataInicio") LocalDateTime dataInicio,
+            @Param("dataFim") LocalDateTime dataFim
+    );
+
+    @Query("""
             select count(c) > 0 from Consulta c
             where c.dentista.id = :dentistaId
               and c.status <> :statusCancelada
