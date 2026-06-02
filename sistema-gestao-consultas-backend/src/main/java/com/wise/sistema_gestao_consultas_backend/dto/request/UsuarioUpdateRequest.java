@@ -1,6 +1,7 @@
 package com.wise.sistema_gestao_consultas_backend.dto.request;
 
 import com.wise.sistema_gestao_consultas_backend.enums.PerfilUsuario;
+import com.wise.sistema_gestao_consultas_backend.validation.CpfValido;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -21,6 +22,7 @@ public class UsuarioUpdateRequest {
     private String nome;
 
     @NotBlank(message = "CPF e obrigatorio")
+    @CpfValido
     @Size(max = 14, message = "CPF deve ter no maximo 14 caracteres")
     private String cpf;
 
