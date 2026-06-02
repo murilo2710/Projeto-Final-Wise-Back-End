@@ -1,10 +1,18 @@
 package com.wise.sistema_gestao_consultas_backend.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wise.sistema_gestao_consultas_backend.dto.response.ErroResponse;
 import com.wise.sistema_gestao_consultas_backend.security.JwtAuthenticationFilter;
 import com.wise.sistema_gestao_consultas_backend.security.UsuarioDetailsService;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -22,10 +30,16 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UsuarioDetailsService usuarioDetailsService;
+    private final ObjectMapper objectMapper;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, UsuarioDetailsService usuarioDetailsService) {
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            UsuarioDetailsService usuarioDetailsService,
+            ObjectMapper objectMapper
+    ) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.usuarioDetailsService = usuarioDetailsService;
+        this.objectMapper = objectMapper;
     }
 
     @Bean
@@ -36,6 +50,22 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) -> escreverErro(
+                                response,
+                                HttpStatus.UNAUTHORIZED,
+                                "Nao autenticado",
+                                "Token ausente, invalido ou expirado",
+                                request.getRequestURI()
+                        ))
+                        .accessDeniedHandler((request, response, accessDeniedException) -> escreverErro(
+                                response,
+                                HttpStatus.FORBIDDEN,
+                                "Acesso negado",
+                                "Voce nao tem permissao para acessar este recurso",
+                                request.getRequestURI()
+                        ))
+                )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
@@ -63,5 +93,26 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    private void escreverErro(
+            HttpServletResponse response,
+            HttpStatus status,
+            String erro,
+            String mensagem,
+            String path
+    ) throws IOException {
+        ErroResponse erroResponse = new ErroResponse(
+                LocalDateTime.now(),
+                status.value(),
+                erro,
+                mensagem,
+                path,
+                List.of()
+        );
+
+        response.setStatus(status.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        objectMapper.writeValue(response.getWriter(), erroResponse);
     }
 }
