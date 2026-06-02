@@ -51,8 +51,8 @@ public class Dentista {
     @ManyToMany
     @JoinTable(
             name = "dentista_especialidade",
-            joinColumns = @JoinColumn(name = "dentista_id"),
-            inverseJoinColumns = @JoinColumn(name = "especialidade_id")
+            joinColumns = @JoinColumn(name = "id_dentista"),
+            inverseJoinColumns = @JoinColumn(name = "id_especialidade")
     )
     private Set<Especialidade> especialidades = new HashSet<>();
 
