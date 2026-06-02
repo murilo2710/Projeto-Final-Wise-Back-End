@@ -24,9 +24,30 @@ public interface ConsultaRepository extends JpaRepository<Consulta, Long> {
             join fetch c.paciente
             join fetch c.dentista
             join fetch c.usuario
+            where c.usuario.id = :usuarioId
+            """)
+    List<Consulta> findAllComRelacionamentosPorUsuario(@Param("usuarioId") Long usuarioId);
+
+    @Query("""
+            select c from Consulta c
+            join fetch c.paciente
+            join fetch c.dentista
+            join fetch c.usuario
             where c.id = :id
             """)
     Optional<Consulta> findByIdComRelacionamentos(@Param("id") Long id);
+
+    @Query("""
+            select c from Consulta c
+            join fetch c.paciente
+            join fetch c.dentista
+            join fetch c.usuario
+            where c.id = :id and c.usuario.id = :usuarioId
+            """)
+    Optional<Consulta> findByIdComRelacionamentosPorUsuario(
+            @Param("id") Long id,
+            @Param("usuarioId") Long usuarioId
+    );
 
     @Query("""
             select count(c) > 0 from Consulta c

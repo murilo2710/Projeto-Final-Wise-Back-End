@@ -23,7 +23,6 @@ public class ConsultaRequest {
     @NotNull(message = "Dentista e obrigatorio")
     private Long dentistaId;
 
-    @NotNull(message = "Usuario e obrigatorio")
     private Long usuarioId;
 
     @NotBlank(message = "Descricao e obrigatoria")

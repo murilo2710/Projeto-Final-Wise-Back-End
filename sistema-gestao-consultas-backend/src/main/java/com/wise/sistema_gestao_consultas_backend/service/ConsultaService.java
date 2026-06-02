@@ -7,11 +7,13 @@ import com.wise.sistema_gestao_consultas_backend.entity.Consulta;
 import com.wise.sistema_gestao_consultas_backend.entity.Dentista;
 import com.wise.sistema_gestao_consultas_backend.entity.Paciente;
 import com.wise.sistema_gestao_consultas_backend.entity.Usuario;
+import com.wise.sistema_gestao_consultas_backend.enums.PerfilUsuario;
 import com.wise.sistema_gestao_consultas_backend.enums.StatusConsulta;
 import com.wise.sistema_gestao_consultas_backend.repository.ConsultaRepository;
 import com.wise.sistema_gestao_consultas_backend.repository.DentistaRepository;
 import com.wise.sistema_gestao_consultas_backend.repository.PacienteRepository;
 import com.wise.sistema_gestao_consultas_backend.repository.UsuarioRepository;
+import com.wise.sistema_gestao_consultas_backend.security.AuthenticatedUserService;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -25,17 +27,24 @@ public class ConsultaService {
     private final PacienteRepository pacienteRepository;
     private final DentistaRepository dentistaRepository;
     private final UsuarioRepository usuarioRepository;
+    private final AuthenticatedUserService authenticatedUserService;
 
     public List<ConsultaResponse> listarTodas() {
-        return consultaRepository.findAllComRelacionamentos()
+        PerfilUsuario perfil = authenticatedUserService.getCurrentPerfil();
+        Long usuarioId = authenticatedUserService.getCurrentUserId();
+
+        List<Consulta> consultas = PerfilUsuario.ADMIN.equals(perfil)
+                ? consultaRepository.findAllComRelacionamentos()
+                : consultaRepository.findAllComRelacionamentosPorUsuario(usuarioId);
+
+        return consultas
                 .stream()
                 .map(this::toResponse)
                 .toList();
     }
 
     public ConsultaResponse buscarPorId(Long id) {
-        Consulta consulta = consultaRepository.findByIdComRelacionamentos(id)
-                .orElseThrow(() -> new IllegalArgumentException("Consulta nao encontrada"));
+        Consulta consulta = buscarConsultaComPermissao(id);
         return toResponse(consulta);
     }
 
@@ -45,7 +54,7 @@ public class ConsultaService {
 
         Paciente paciente = buscarPaciente(request.getPacienteId());
         Dentista dentista = buscarDentista(request.getDentistaId());
-        Usuario usuario = buscarUsuario(request.getUsuarioId());
+        Usuario usuario = buscarUsuario(authenticatedUserService.getCurrentUserId());
 
         Consulta consulta = new Consulta();
         consulta.setPaciente(paciente);
@@ -62,19 +71,16 @@ public class ConsultaService {
     }
 
     public ConsultaResponse atualizar(Long id, ConsultaRequest request) {
-        Consulta consulta = consultaRepository.findByIdComRelacionamentos(id)
-                .orElseThrow(() -> new IllegalArgumentException("Consulta nao encontrada"));
+        Consulta consulta = buscarConsultaComPermissao(id);
 
         StatusConsulta status = request.getStatus() == null ? consulta.getStatus() : request.getStatus();
         validarRegras(request, status, id);
 
         Paciente paciente = buscarPaciente(request.getPacienteId());
         Dentista dentista = buscarDentista(request.getDentistaId());
-        Usuario usuario = buscarUsuario(request.getUsuarioId());
 
         consulta.setPaciente(paciente);
         consulta.setDentista(dentista);
-        consulta.setUsuario(usuario);
         consulta.setDescricao(request.getDescricao());
         consulta.setMotivoCancelamento(status == StatusConsulta.CANCELADA ? request.getMotivoCancelamento() : null);
         consulta.setDataInicio(request.getDataInicio());
@@ -86,8 +92,7 @@ public class ConsultaService {
     }
 
     public ConsultaResponse cancelar(Long id, CancelarConsultaRequest request) {
-        Consulta consulta = consultaRepository.findByIdComRelacionamentos(id)
-                .orElseThrow(() -> new IllegalArgumentException("Consulta nao encontrada"));
+        Consulta consulta = buscarConsultaComPermissao(id);
 
         consulta.setStatus(StatusConsulta.CANCELADA);
         consulta.setMotivoCancelamento(request.getMotivoCancelamento());
@@ -97,10 +102,8 @@ public class ConsultaService {
     }
 
     public void deletar(Long id) {
-        if (!consultaRepository.existsById(id)) {
-            throw new IllegalArgumentException("Consulta nao encontrada");
-        }
-        consultaRepository.deleteById(id);
+        Consulta consulta = buscarConsultaComPermissao(id);
+        consultaRepository.delete(consulta);
     }
 
     private void validarRegras(ConsultaRequest request, StatusConsulta status, Long consultaId) {
@@ -155,6 +158,19 @@ public class ConsultaService {
             throw new IllegalStateException("Usuario inativo");
         }
         return usuario;
+    }
+
+    private Consulta buscarConsultaComPermissao(Long id) {
+        PerfilUsuario perfil = authenticatedUserService.getCurrentPerfil();
+        Long usuarioId = authenticatedUserService.getCurrentUserId();
+
+        if (PerfilUsuario.ADMIN.equals(perfil)) {
+            return consultaRepository.findByIdComRelacionamentos(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Consulta nao encontrada"));
+        }
+
+        return consultaRepository.findByIdComRelacionamentosPorUsuario(id, usuarioId)
+                .orElseThrow(() -> new IllegalArgumentException("Consulta nao encontrada"));
     }
 
     private ConsultaResponse toResponse(Consulta consulta) {
