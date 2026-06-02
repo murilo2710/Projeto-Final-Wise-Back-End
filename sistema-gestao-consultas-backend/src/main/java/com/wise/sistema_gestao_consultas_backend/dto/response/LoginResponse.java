@@ -16,4 +16,6 @@ public class LoginResponse {
     private String nome;
     private String email;
     private PerfilUsuario perfil;
+    private String token;
+    private String tipoToken;
 }
