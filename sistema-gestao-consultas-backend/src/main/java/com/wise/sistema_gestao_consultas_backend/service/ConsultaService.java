@@ -81,7 +81,7 @@ public class ConsultaService {
                 consultas.size(),
                 contarPorStatus(consultas, StatusConsulta.AGENDADA),
                 contarPorStatus(consultas, StatusConsulta.CANCELADA),
-                contarPorStatus(consultas, StatusConsulta.REALIZADA),
+                contarPorStatus(consultas, StatusConsulta.FINALIZADA),
                 consultas.stream().map(consulta -> consulta.getPaciente().getId()).distinct().count(),
                 consultas.stream().map(consulta -> consulta.getDentista().getId()).distinct().count(),
                 proximasConsultas

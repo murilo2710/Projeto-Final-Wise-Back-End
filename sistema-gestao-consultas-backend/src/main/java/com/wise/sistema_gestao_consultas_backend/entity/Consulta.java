@@ -32,27 +32,18 @@ public class Consulta {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "paciente_id", nullable = false)
+    @JoinColumn(name = "id_paciente", nullable = false)
     private Paciente paciente;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "dentista_id", nullable = false)
+    @JoinColumn(name = "id_dentista", nullable = false)
     private Dentista dentista;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id", nullable = false)
+    @JoinColumn(name = "id_usuario", nullable = false)
     private Usuario usuario;
 
-    @Column(name = "id_paciente", nullable = false)
-    private Long idPacienteLegado;
-
-    @Column(name = "id_dentista", nullable = false)
-    private Long idDentistaLegado;
-
-    @Column(name = "id_usuario", nullable = false)
-    private Long idUsuarioLegado;
-
-    @Column(length = 500)
+    @Column(nullable = false, length = 500)
     private String descricao;
 
     @Column(length = 500)
@@ -73,24 +64,6 @@ public class Consulta {
 
     @PrePersist
     public void prePersist() {
-        sincronizarChavesLegadas();
         dataRegistro = LocalDateTime.now();
-    }
-
-    @jakarta.persistence.PreUpdate
-    public void preUpdate() {
-        sincronizarChavesLegadas();
-    }
-
-    private void sincronizarChavesLegadas() {
-        if (paciente != null) {
-            idPacienteLegado = paciente.getId();
-        }
-        if (dentista != null) {
-            idDentistaLegado = dentista.getId();
-        }
-        if (usuario != null) {
-            idUsuarioLegado = usuario.getId();
-        }
     }
 }

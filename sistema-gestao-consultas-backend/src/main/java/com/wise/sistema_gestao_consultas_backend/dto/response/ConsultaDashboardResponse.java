@@ -15,7 +15,7 @@ public class ConsultaDashboardResponse {
     private long totalConsultas;
     private long totalAgendadas;
     private long totalCanceladas;
-    private long totalRealizadas;
+    private long totalFinalizadas;
     private long totalPacientesComConsulta;
     private long totalDentistasComConsulta;
     private List<ConsultaResponse> proximasConsultas;
