@@ -11,6 +11,8 @@ public interface MaterialRepository extends JpaRepository<Material, Long> {
 
     Optional<Material> findByNome(String nome);
 
+    boolean existsByEspecialidadesId(Long especialidadeId);
+
     @Query("""
             select distinct m from Material m
             left join fetch m.especialidades e

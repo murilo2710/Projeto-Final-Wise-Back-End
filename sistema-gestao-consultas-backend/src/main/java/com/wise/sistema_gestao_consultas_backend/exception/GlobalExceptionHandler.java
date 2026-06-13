@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -148,6 +149,20 @@ public class GlobalExceptionHandler {
                 HttpStatus.FORBIDDEN,
                 "Acesso negado",
                 "Voce nao tem permissao para acessar este recurso",
+                request.getRequestURI(),
+                List.of()
+        );
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErroResponse> handleDataIntegrityViolation(
+            DataIntegrityViolationException exception,
+            HttpServletRequest request
+    ) {
+        return construirResposta(
+                HttpStatus.CONFLICT,
+                "Conflito de integridade",
+                "Registro possui vinculos ou dados duplicados e nao pode ser processado",
                 request.getRequestURI(),
                 List.of()
         );

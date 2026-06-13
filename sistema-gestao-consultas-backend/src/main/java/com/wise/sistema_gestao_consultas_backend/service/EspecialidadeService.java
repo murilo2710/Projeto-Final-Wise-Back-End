@@ -3,7 +3,9 @@ package com.wise.sistema_gestao_consultas_backend.service;
 import com.wise.sistema_gestao_consultas_backend.dto.request.EspecialidadeRequest;
 import com.wise.sistema_gestao_consultas_backend.dto.response.EspecialidadeResponse;
 import com.wise.sistema_gestao_consultas_backend.entity.Especialidade;
+import com.wise.sistema_gestao_consultas_backend.repository.DentistaRepository;
 import com.wise.sistema_gestao_consultas_backend.repository.EspecialidadeRepository;
+import com.wise.sistema_gestao_consultas_backend.repository.MaterialRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,8 @@ import org.springframework.stereotype.Service;
 public class EspecialidadeService {
 
     private final EspecialidadeRepository especialidadeRepository;
+    private final DentistaRepository dentistaRepository;
+    private final MaterialRepository materialRepository;
 
     public List<EspecialidadeResponse> listarTodos() {
         return especialidadeRepository.findAll()
@@ -49,6 +53,12 @@ public class EspecialidadeService {
     public void deletar(Long id) {
         if (!especialidadeRepository.existsById(id)) {
             throw new IllegalArgumentException("Especialidade nao encontrada");
+        }
+        if (dentistaRepository.existsByEspecialidadesId(id)) {
+            throw new IllegalStateException("Especialidade possui dentistas vinculados e nao pode ser excluida");
+        }
+        if (materialRepository.existsByEspecialidadesId(id)) {
+            throw new IllegalStateException("Especialidade possui materiais vinculados e nao pode ser excluida");
         }
         especialidadeRepository.deleteById(id);
     }

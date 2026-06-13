@@ -5,6 +5,7 @@ import com.wise.sistema_gestao_consultas_backend.dto.request.UsuarioRequest;
 import com.wise.sistema_gestao_consultas_backend.dto.request.UsuarioUpdateRequest;
 import com.wise.sistema_gestao_consultas_backend.dto.response.UsuarioResponse;
 import com.wise.sistema_gestao_consultas_backend.entity.Usuario;
+import com.wise.sistema_gestao_consultas_backend.repository.ConsultaRepository;
 import com.wise.sistema_gestao_consultas_backend.repository.UsuarioRepository;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,6 +20,7 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ConsultaRepository consultaRepository;
 
     public List<UsuarioResponse> listarTodos() {
         return usuarioRepository.findAll()
@@ -104,6 +106,9 @@ public class UsuarioService {
     public void deletar(Long id) {
         if (!usuarioRepository.existsById(id)) {
             throw new IllegalArgumentException("Usuario nao encontrado");
+        }
+        if (consultaRepository.existsByUsuarioId(id)) {
+            throw new IllegalStateException("Usuario possui consultas registradas e nao pode ser excluido");
         }
         usuarioRepository.deleteById(id);
     }

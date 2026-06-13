@@ -3,6 +3,7 @@ package com.wise.sistema_gestao_consultas_backend.service;
 import com.wise.sistema_gestao_consultas_backend.dto.request.PacienteRequest;
 import com.wise.sistema_gestao_consultas_backend.dto.response.PacienteResponse;
 import com.wise.sistema_gestao_consultas_backend.entity.Paciente;
+import com.wise.sistema_gestao_consultas_backend.repository.ConsultaRepository;
 import com.wise.sistema_gestao_consultas_backend.repository.PacienteRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 public class PacienteService {
 
     private final PacienteRepository pacienteRepository;
+    private final ConsultaRepository consultaRepository;
 
     public List<PacienteResponse> listarTodos() {
         return pacienteRepository.findAll()
@@ -58,6 +60,9 @@ public class PacienteService {
     public void deletar(Long id) {
         if (!pacienteRepository.existsById(id)) {
             throw new IllegalArgumentException("Paciente nao encontrado");
+        }
+        if (consultaRepository.existsByPacienteId(id)) {
+            throw new IllegalStateException("Paciente possui consultas registradas e nao pode ser excluido");
         }
         pacienteRepository.deleteById(id);
     }

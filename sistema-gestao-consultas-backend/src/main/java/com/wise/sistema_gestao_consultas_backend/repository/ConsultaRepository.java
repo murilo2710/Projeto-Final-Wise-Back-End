@@ -11,6 +11,12 @@ import org.springframework.data.repository.query.Param;
 
 public interface ConsultaRepository extends JpaRepository<Consulta, Long> {
 
+    boolean existsByPacienteId(Long pacienteId);
+
+    boolean existsByDentistaId(Long dentistaId);
+
+    boolean existsByUsuarioId(Long usuarioId);
+
     @Query("""
             select c from Consulta c
             join fetch c.paciente

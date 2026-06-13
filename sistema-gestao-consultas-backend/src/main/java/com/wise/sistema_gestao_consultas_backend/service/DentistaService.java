@@ -5,6 +5,7 @@ import com.wise.sistema_gestao_consultas_backend.dto.response.DentistaResponse;
 import com.wise.sistema_gestao_consultas_backend.dto.response.EspecialidadeResponse;
 import com.wise.sistema_gestao_consultas_backend.entity.Dentista;
 import com.wise.sistema_gestao_consultas_backend.entity.Especialidade;
+import com.wise.sistema_gestao_consultas_backend.repository.ConsultaRepository;
 import com.wise.sistema_gestao_consultas_backend.repository.DentistaRepository;
 import com.wise.sistema_gestao_consultas_backend.repository.EspecialidadeRepository;
 import java.util.HashSet;
@@ -20,6 +21,7 @@ public class DentistaService {
 
     private final DentistaRepository dentistaRepository;
     private final EspecialidadeRepository especialidadeRepository;
+    private final ConsultaRepository consultaRepository;
 
     @Transactional(readOnly = true)
     public List<DentistaResponse> listarTodos() {
@@ -76,6 +78,9 @@ public class DentistaService {
     public void deletar(Long id) {
         if (!dentistaRepository.existsById(id)) {
             throw new IllegalArgumentException("Dentista nao encontrado");
+        }
+        if (consultaRepository.existsByDentistaId(id)) {
+            throw new IllegalStateException("Dentista possui consultas registradas e nao pode ser excluido");
         }
         dentistaRepository.deleteById(id);
     }

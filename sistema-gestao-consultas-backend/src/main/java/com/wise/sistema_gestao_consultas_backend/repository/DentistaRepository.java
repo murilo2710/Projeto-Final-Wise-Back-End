@@ -11,4 +11,6 @@ public interface DentistaRepository extends JpaRepository<Dentista, Long> {
     Optional<Dentista> findByCpf(String cpf);
 
     Optional<Dentista> findByCro(String cro);
+
+    boolean existsByEspecialidadesId(Long especialidadeId);
 }
