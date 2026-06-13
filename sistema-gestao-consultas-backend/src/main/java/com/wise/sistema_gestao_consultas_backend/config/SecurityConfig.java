@@ -77,6 +77,7 @@ public class SecurityConfig {
                         .requestMatchers("/dentistas/**").hasAnyRole("ADMIN", "DENTISTA")
                         .requestMatchers("/especialidades/**").hasAnyRole("ADMIN", "DENTISTA")
                         .requestMatchers("/consultas/**").hasAnyRole("ADMIN", "DENTISTA")
+                        .requestMatchers("/materiais/**").hasAnyRole("ADMIN", "DENTISTA")
                         .anyRequest().authenticated()
                 )
                 .build();
