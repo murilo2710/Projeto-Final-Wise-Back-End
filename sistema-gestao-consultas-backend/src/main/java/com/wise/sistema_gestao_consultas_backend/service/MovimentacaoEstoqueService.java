@@ -1,7 +1,10 @@
 package com.wise.sistema_gestao_consultas_backend.service;
 
 import com.wise.sistema_gestao_consultas_backend.dto.request.MovimentacaoEstoqueRequest;
+import com.wise.sistema_gestao_consultas_backend.dto.response.EstoqueDashboardResponse;
+import com.wise.sistema_gestao_consultas_backend.dto.response.MaterialResponse;
 import com.wise.sistema_gestao_consultas_backend.dto.response.MovimentacaoEstoqueResponse;
+import com.wise.sistema_gestao_consultas_backend.dto.response.EspecialidadeResponse;
 import com.wise.sistema_gestao_consultas_backend.entity.Material;
 import com.wise.sistema_gestao_consultas_backend.entity.MovimentacaoEstoque;
 import com.wise.sistema_gestao_consultas_backend.entity.Usuario;
@@ -37,6 +40,35 @@ public class MovimentacaoEstoqueService {
                 .stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public EstoqueDashboardResponse dashboard() {
+        List<Material> materiais = materialRepository.buscarComFiltros(null, null, null);
+        List<MovimentacaoEstoque> movimentacoes = movimentacaoEstoqueRepository.buscarComFiltros(null, null, null, null);
+
+        List<MaterialResponse> materiaisBaixoEstoque = materiais.stream()
+                .filter(this::isBaixoEstoque)
+                .map(this::toMaterialResponse)
+                .toList();
+
+        List<MovimentacaoEstoqueResponse> ultimasMovimentacoes = movimentacoes.stream()
+                .limit(5)
+                .map(this::toResponse)
+                .toList();
+
+        return new EstoqueDashboardResponse(
+                materiais.size(),
+                materiais.stream().filter(material -> Boolean.TRUE.equals(material.getAtivo())).count(),
+                materiais.stream().filter(material -> !Boolean.TRUE.equals(material.getAtivo())).count(),
+                materiaisBaixoEstoque.size(),
+                movimentacoes.size(),
+                contarPorTipo(movimentacoes, TipoMovimentacaoEstoque.ENTRADA),
+                contarPorTipo(movimentacoes, TipoMovimentacaoEstoque.SAIDA),
+                contarPorTipo(movimentacoes, TipoMovimentacaoEstoque.AJUSTE),
+                materiaisBaixoEstoque,
+                ultimasMovimentacoes
+        );
     }
 
     @Transactional
@@ -125,6 +157,35 @@ public class MovimentacaoEstoqueService {
                 movimentacao.getEstoqueAtual(),
                 movimentacao.getMotivo(),
                 movimentacao.getDataMovimentacao()
+        );
+    }
+
+    private long contarPorTipo(List<MovimentacaoEstoque> movimentacoes, TipoMovimentacaoEstoque tipo) {
+        return movimentacoes.stream()
+                .filter(movimentacao -> tipo.equals(movimentacao.getTipo()))
+                .count();
+    }
+
+    private boolean isBaixoEstoque(Material material) {
+        return material.getQuantidadeAtual().compareTo(material.getQuantidadeMinima()) <= 0;
+    }
+
+    private MaterialResponse toMaterialResponse(Material material) {
+        return new MaterialResponse(
+                material.getId(),
+                material.getNome(),
+                material.getDescricao(),
+                material.getUnidadeMedida(),
+                material.getQuantidadeAtual(),
+                material.getQuantidadeMinima(),
+                material.getAtivo(),
+                isBaixoEstoque(material),
+                material.getDataCriacao(),
+                material.getEspecialidades()
+                        .stream()
+                        .map(especialidade -> new EspecialidadeResponse(especialidade.getId(), especialidade.getNome()))
+                        .sorted((a, b) -> a.getNome().compareToIgnoreCase(b.getNome()))
+                        .toList()
         );
     }
 }

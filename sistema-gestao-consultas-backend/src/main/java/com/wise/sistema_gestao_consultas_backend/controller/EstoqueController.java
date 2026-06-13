@@ -1,6 +1,7 @@
 package com.wise.sistema_gestao_consultas_backend.controller;
 
 import com.wise.sistema_gestao_consultas_backend.dto.request.MovimentacaoEstoqueRequest;
+import com.wise.sistema_gestao_consultas_backend.dto.response.EstoqueDashboardResponse;
 import com.wise.sistema_gestao_consultas_backend.dto.response.MovimentacaoEstoqueResponse;
 import com.wise.sistema_gestao_consultas_backend.enums.TipoMovimentacaoEstoque;
 import com.wise.sistema_gestao_consultas_backend.service.MovimentacaoEstoqueService;
@@ -25,6 +26,11 @@ import org.springframework.web.server.ResponseStatusException;
 public class EstoqueController {
 
     private final MovimentacaoEstoqueService movimentacaoEstoqueService;
+
+    @GetMapping("/dashboard")
+    public ResponseEntity<EstoqueDashboardResponse> dashboard() {
+        return ResponseEntity.ok(movimentacaoEstoqueService.dashboard());
+    }
 
     @GetMapping("/movimentacoes")
     public ResponseEntity<List<MovimentacaoEstoqueResponse>> listarMovimentacoes(
