@@ -20,6 +20,7 @@ import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -149,6 +150,19 @@ public class ConsultaService {
     public void deletar(Long id) {
         Consulta consulta = buscarConsultaComPermissao(id);
         consultaRepository.delete(consulta);
+    }
+
+    @Transactional
+    public int finalizarConsultasAgendadasVencidas() {
+        List<Consulta> consultasVencidas = consultaRepository.findByStatusAndDataFimBefore(
+                StatusConsulta.AGENDADA,
+                LocalDateTime.now()
+        );
+
+        consultasVencidas.forEach(consulta -> consulta.setStatus(StatusConsulta.FINALIZADA));
+        consultaRepository.saveAll(consultasVencidas);
+
+        return consultasVencidas.size();
     }
 
     private void validarRegras(ConsultaRequest request, StatusConsulta status, Long consultaId) {

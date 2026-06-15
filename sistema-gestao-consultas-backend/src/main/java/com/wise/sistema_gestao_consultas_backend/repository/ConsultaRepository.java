@@ -17,6 +17,8 @@ public interface ConsultaRepository extends JpaRepository<Consulta, Long> {
 
     boolean existsByUsuarioId(Long usuarioId);
 
+    List<Consulta> findByStatusAndDataFimBefore(StatusConsulta status, LocalDateTime dataFim);
+
     @Query("""
             select c from Consulta c
             join fetch c.paciente
