@@ -17,6 +17,7 @@ public class EspecialidadeService {
     private final EspecialidadeRepository especialidadeRepository;
     private final DentistaRepository dentistaRepository;
     private final MaterialRepository materialRepository;
+    private final NotificacaoService notificacaoService;
 
     public List<EspecialidadeResponse> listarTodos() {
         return especialidadeRepository.findAll()
@@ -37,7 +38,15 @@ public class EspecialidadeService {
         Especialidade especialidade = new Especialidade();
         especialidade.setNome(request.getNome());
 
-        return toResponse(especialidadeRepository.save(especialidade));
+        Especialidade salva = especialidadeRepository.save(especialidade);
+        notificacaoService.notificar(
+                "Especialidade cadastrada",
+                "A especialidade " + salva.getNome() + " foi cadastrada com sucesso",
+                "SUCESSO",
+                "ESPECIALIDADE",
+                salva.getId()
+        );
+        return toResponse(salva);
     }
 
     public EspecialidadeResponse atualizar(Long id, EspecialidadeRequest request) {
@@ -47,13 +56,20 @@ public class EspecialidadeService {
         validarNomeDuplicado(request.getNome(), id);
         especialidade.setNome(request.getNome());
 
-        return toResponse(especialidadeRepository.save(especialidade));
+        Especialidade atualizada = especialidadeRepository.save(especialidade);
+        notificacaoService.notificar(
+                "Especialidade atualizada",
+                "A especialidade " + atualizada.getNome() + " foi atualizada com sucesso",
+                "INFO",
+                "ESPECIALIDADE",
+                atualizada.getId()
+        );
+        return toResponse(atualizada);
     }
 
     public void deletar(Long id) {
-        if (!especialidadeRepository.existsById(id)) {
-            throw new IllegalArgumentException("Especialidade nao encontrada");
-        }
+        Especialidade especialidade = especialidadeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Especialidade nao encontrada"));
         if (dentistaRepository.existsByEspecialidadesId(id)) {
             throw new IllegalStateException("Especialidade possui dentistas vinculados e nao pode ser excluida");
         }
@@ -61,6 +77,13 @@ public class EspecialidadeService {
             throw new IllegalStateException("Especialidade possui materiais vinculados e nao pode ser excluida");
         }
         especialidadeRepository.deleteById(id);
+        notificacaoService.notificar(
+                "Especialidade excluida",
+                "A especialidade " + especialidade.getNome() + " foi excluida com sucesso",
+                "ALERTA",
+                "ESPECIALIDADE",
+                id
+        );
     }
 
     private void validarNomeDuplicado(String nome, Long idAtual) {

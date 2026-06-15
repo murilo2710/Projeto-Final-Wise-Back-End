@@ -31,6 +31,7 @@ public class ConsultaService {
     private final DentistaRepository dentistaRepository;
     private final UsuarioRepository usuarioRepository;
     private final AuthenticatedUserService authenticatedUserService;
+    private final NotificacaoService notificacaoService;
 
     public List<ConsultaResponse> listarTodas() {
         return listarConsultasComPermissao()
@@ -113,6 +114,13 @@ public class ConsultaService {
         consulta.setStatus(status);
 
         Consulta salva = consultaRepository.save(consulta);
+        notificacaoService.notificar(
+                "Consulta agendada",
+                "Uma nova consulta foi agendada para o paciente " + paciente.getNome(),
+                "SUCESSO",
+                "CONSULTA",
+                salva.getId()
+        );
         return buscarPorId(salva.getId());
     }
 
@@ -134,6 +142,13 @@ public class ConsultaService {
         consulta.setStatus(status);
 
         Consulta atualizada = consultaRepository.save(consulta);
+        notificacaoService.notificar(
+                "Consulta atualizada",
+                "A consulta #" + atualizada.getId() + " foi atualizada",
+                "INFO",
+                "CONSULTA",
+                atualizada.getId()
+        );
         return buscarPorId(atualizada.getId());
     }
 
@@ -144,12 +159,26 @@ public class ConsultaService {
         consulta.setMotivoCancelamento(request.getMotivoCancelamento());
 
         Consulta atualizada = consultaRepository.save(consulta);
+        notificacaoService.notificar(
+                "Consulta cancelada",
+                "A consulta #" + atualizada.getId() + " foi cancelada",
+                "ALERTA",
+                "CONSULTA",
+                atualizada.getId()
+        );
         return toResponse(atualizada);
     }
 
     public void deletar(Long id) {
         Consulta consulta = buscarConsultaComPermissao(id);
         consultaRepository.delete(consulta);
+        notificacaoService.notificar(
+                "Consulta excluida",
+                "A consulta #" + consulta.getId() + " foi excluida com sucesso",
+                "ALERTA",
+                "CONSULTA",
+                consulta.getId()
+        );
     }
 
     @Transactional
@@ -161,6 +190,16 @@ public class ConsultaService {
 
         consultasVencidas.forEach(consulta -> consulta.setStatus(StatusConsulta.FINALIZADA));
         consultaRepository.saveAll(consultasVencidas);
+
+        if (!consultasVencidas.isEmpty()) {
+            notificacaoService.notificar(
+                    "Consultas finalizadas",
+                    consultasVencidas.size() + " consulta(s) vencida(s) foram finalizada(s) automaticamente",
+                    "INFO",
+                    "CONSULTA",
+                    null
+            );
+        }
 
         return consultasVencidas.size();
     }

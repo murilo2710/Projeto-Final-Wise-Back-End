@@ -21,6 +21,7 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final ConsultaRepository consultaRepository;
+    private final NotificacaoService notificacaoService;
 
     public List<UsuarioResponse> listarTodos() {
         return usuarioRepository.findAll()
@@ -68,7 +69,15 @@ public class UsuarioService {
         usuario.setPerfil(request.getPerfil());
         usuario.setAtivo(Boolean.TRUE);
 
-        return cadastrarInterno(usuario, null);
+        Usuario salvo = cadastrarInterno(usuario, null);
+        notificacaoService.notificar(
+                "Usuario cadastrado",
+                "O usuario " + salvo.getNome() + " foi cadastrado com sucesso",
+                "SUCESSO",
+                "USUARIO",
+                salvo.getId()
+        );
+        return salvo;
     }
 
     public UsuarioResponse cadastrarViaCrud(UsuarioRequest request) {
@@ -81,6 +90,13 @@ public class UsuarioService {
         usuario.setAtivo(request.getAtivo() == null ? Boolean.TRUE : request.getAtivo());
 
         Usuario salvo = cadastrarInterno(usuario, null);
+        notificacaoService.notificar(
+                "Usuario cadastrado",
+                "O usuario " + salvo.getNome() + " foi cadastrado com sucesso",
+                "SUCESSO",
+                "USUARIO",
+                salvo.getId()
+        );
         return toResponse(salvo);
     }
 
@@ -100,17 +116,30 @@ public class UsuarioService {
         }
 
         Usuario atualizado = usuarioRepository.save(usuario);
+        notificacaoService.notificar(
+                "Usuario atualizado",
+                "O usuario " + atualizado.getNome() + " foi atualizado com sucesso",
+                "INFO",
+                "USUARIO",
+                atualizado.getId()
+        );
         return toResponse(atualizado);
     }
 
     public void deletar(Long id) {
-        if (!usuarioRepository.existsById(id)) {
-            throw new IllegalArgumentException("Usuario nao encontrado");
-        }
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario nao encontrado"));
         if (consultaRepository.existsByUsuarioId(id)) {
             throw new IllegalStateException("Usuario possui consultas registradas e nao pode ser excluido");
         }
         usuarioRepository.deleteById(id);
+        notificacaoService.notificar(
+                "Usuario excluido",
+                "O usuario " + usuario.getNome() + " foi excluido com sucesso",
+                "ALERTA",
+                "USUARIO",
+                id
+        );
     }
 
     private Usuario cadastrarInterno(Usuario usuario, Long idAtual) {

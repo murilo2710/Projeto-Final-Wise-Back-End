@@ -22,6 +22,7 @@ public class DentistaService {
     private final DentistaRepository dentistaRepository;
     private final EspecialidadeRepository especialidadeRepository;
     private final ConsultaRepository consultaRepository;
+    private final NotificacaoService notificacaoService;
 
     @Transactional(readOnly = true)
     public List<DentistaResponse> listarTodos() {
@@ -50,7 +51,15 @@ public class DentistaService {
         dentista.setAtivo(request.getAtivo() == null ? Boolean.TRUE : request.getAtivo());
         dentista.setEspecialidades(buscarEspecialidades(request.getEspecialidadeIds()));
 
-        return toResponse(dentistaRepository.save(dentista));
+        Dentista salvo = dentistaRepository.save(dentista);
+        notificacaoService.notificar(
+                "Dentista cadastrado",
+                "O dentista " + salvo.getNome() + " foi cadastrado com sucesso",
+                "SUCESSO",
+                "DENTISTA",
+                salvo.getId()
+        );
+        return toResponse(salvo);
     }
 
     @Transactional
@@ -71,18 +80,32 @@ public class DentistaService {
             dentista.setEspecialidades(buscarEspecialidades(request.getEspecialidadeIds()));
         }
 
-        return toResponse(dentistaRepository.save(dentista));
+        Dentista atualizado = dentistaRepository.save(dentista);
+        notificacaoService.notificar(
+                "Dentista atualizado",
+                "O dentista " + atualizado.getNome() + " foi atualizado com sucesso",
+                "INFO",
+                "DENTISTA",
+                atualizado.getId()
+        );
+        return toResponse(atualizado);
     }
 
     @Transactional
     public void deletar(Long id) {
-        if (!dentistaRepository.existsById(id)) {
-            throw new IllegalArgumentException("Dentista nao encontrado");
-        }
+        Dentista dentista = dentistaRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Dentista nao encontrado"));
         if (consultaRepository.existsByDentistaId(id)) {
             throw new IllegalStateException("Dentista possui consultas registradas e nao pode ser excluido");
         }
         dentistaRepository.deleteById(id);
+        notificacaoService.notificar(
+                "Dentista excluido",
+                "O dentista " + dentista.getNome() + " foi excluido com sucesso",
+                "ALERTA",
+                "DENTISTA",
+                id
+        );
     }
 
     private void validarDuplicidade(String email, String cpf, String cro, Long idAtual) {

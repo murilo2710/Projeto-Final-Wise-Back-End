@@ -20,6 +20,7 @@ public class MaterialService {
 
     private final MaterialRepository materialRepository;
     private final EspecialidadeRepository especialidadeRepository;
+    private final NotificacaoService notificacaoService;
 
     @Transactional(readOnly = true)
     public List<MaterialResponse> listar(Boolean ativo, Boolean baixoEstoque, Long especialidadeId) {
@@ -43,6 +44,13 @@ public class MaterialService {
         preencherMaterial(material, request);
 
         Material salvo = materialRepository.save(material);
+        notificacaoService.notificar(
+                "Material cadastrado",
+                "O material " + salvo.getNome() + " foi cadastrado com sucesso",
+                "SUCESSO",
+                "MATERIAL",
+                salvo.getId()
+        );
         return buscarPorId(salvo.getId());
     }
 
@@ -54,6 +62,13 @@ public class MaterialService {
         preencherMaterial(material, request);
 
         Material atualizado = materialRepository.save(material);
+        notificacaoService.notificar(
+                "Material atualizado",
+                "O material " + atualizado.getNome() + " foi atualizado com sucesso",
+                "INFO",
+                "MATERIAL",
+                atualizado.getId()
+        );
         return buscarPorId(atualizado.getId());
     }
 
@@ -61,14 +76,30 @@ public class MaterialService {
     public MaterialResponse ativar(Long id) {
         Material material = buscarMaterial(id);
         material.setAtivo(Boolean.TRUE);
-        return toResponse(materialRepository.save(material));
+        Material atualizado = materialRepository.save(material);
+        notificacaoService.notificar(
+                "Material ativado",
+                "O material " + atualizado.getNome() + " foi ativado com sucesso",
+                "SUCESSO",
+                "MATERIAL",
+                atualizado.getId()
+        );
+        return toResponse(atualizado);
     }
 
     @Transactional
     public MaterialResponse inativar(Long id) {
         Material material = buscarMaterial(id);
         material.setAtivo(Boolean.FALSE);
-        return toResponse(materialRepository.save(material));
+        Material atualizado = materialRepository.save(material);
+        notificacaoService.notificar(
+                "Material inativado",
+                "O material " + atualizado.getNome() + " foi inativado com sucesso",
+                "ALERTA",
+                "MATERIAL",
+                atualizado.getId()
+        );
+        return toResponse(atualizado);
     }
 
     private void preencherMaterial(Material material, MaterialRequest request) {

@@ -28,6 +28,7 @@ public class MovimentacaoEstoqueService {
     private final MaterialRepository materialRepository;
     private final UsuarioRepository usuarioRepository;
     private final AuthenticatedUserService authenticatedUserService;
+    private final NotificacaoService notificacaoService;
 
     @Transactional(readOnly = true)
     public List<MovimentacaoEstoqueResponse> listar(
@@ -91,7 +92,30 @@ public class MovimentacaoEstoqueService {
         movimentacao.setEstoqueAtual(estoqueAtual);
         movimentacao.setMotivo(request.getMotivo().trim());
 
-        return toResponse(movimentacaoEstoqueRepository.save(movimentacao));
+        MovimentacaoEstoque movimentacaoSalva = movimentacaoEstoqueRepository.save(movimentacao);
+        notificarMovimentacao(material, movimentacaoSalva);
+
+        return toResponse(movimentacaoSalva);
+    }
+
+    private void notificarMovimentacao(Material material, MovimentacaoEstoque movimentacao) {
+        notificacaoService.notificar(
+                "Estoque atualizado",
+                "Movimentacao " + movimentacao.getTipo() + " registrada para " + material.getNome(),
+                "INFO",
+                "MATERIAL",
+                material.getId()
+        );
+
+        if (isBaixoEstoque(material)) {
+            notificacaoService.notificar(
+                    "Baixo estoque",
+                    "O material " + material.getNome() + " esta abaixo ou igual ao estoque minimo",
+                    "ALERTA",
+                    "MATERIAL",
+                    material.getId()
+            );
+        }
     }
 
     private BigDecimal calcularEstoqueAtual(BigDecimal estoqueAnterior, MovimentacaoEstoqueRequest request) {
