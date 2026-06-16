@@ -24,10 +24,11 @@ public class MovimentacaoEstoqueRequest {
     private TipoMovimentacaoEstoque tipo;
 
     @NotNull(message = "Quantidade e obrigatoria")
-    @DecimalMin(value = "0.00", message = "Quantidade nao pode ser negativa")
+    @DecimalMin(value = "0.00", inclusive = false, message = "Quantidade deve ser maior que zero")
     private BigDecimal quantidade;
 
     @NotBlank(message = "Motivo e obrigatorio")
+    @Size(min = 5, message = "Motivo deve ter no minimo 5 caracteres")
     @Size(max = 500, message = "Motivo deve ter no maximo 500 caracteres")
     private String motivo;
 }

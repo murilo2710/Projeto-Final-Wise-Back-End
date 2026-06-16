@@ -5,6 +5,7 @@ import com.wise.sistema_gestao_consultas_backend.validation.CpfValido;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,6 +19,8 @@ import lombok.Setter;
 public class UsuarioRequest {
 
     @NotBlank(message = "Nome e obrigatorio")
+    @Pattern(regexp = "^[\\p{L}]+(?:[\\p{L}\\s'.-]*[\\p{L}])?$", message = "Nome deve conter apenas letras e espacos")
+    @Size(min = 3, message = "Nome deve ter no minimo 3 caracteres")
     @Size(max = 120, message = "Nome deve ter no maximo 120 caracteres")
     private String nome;
 

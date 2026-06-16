@@ -26,6 +26,7 @@ public class ConsultaRequest {
     private Long usuarioId;
 
     @NotBlank(message = "Descricao e obrigatoria")
+    @Size(min = 5, message = "Descricao deve ter no minimo 5 caracteres")
     @Size(max = 500, message = "Descricao deve ter no maximo 500 caracteres")
     private String descricao;
 

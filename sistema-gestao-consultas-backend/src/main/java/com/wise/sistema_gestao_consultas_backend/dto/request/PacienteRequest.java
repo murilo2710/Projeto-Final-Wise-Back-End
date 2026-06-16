@@ -3,6 +3,7 @@ package com.wise.sistema_gestao_consultas_backend.dto.request;
 import com.wise.sistema_gestao_consultas_backend.validation.CpfValido;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,6 +17,8 @@ import lombok.Setter;
 public class PacienteRequest {
 
     @NotBlank(message = "Nome e obrigatorio")
+    @Pattern(regexp = "^[\\p{L}]+(?:[\\p{L}\\s'.-]*[\\p{L}])?$", message = "Nome deve conter apenas letras e espacos")
+    @Size(min = 3, message = "Nome deve ter no minimo 3 caracteres")
     @Size(max = 120, message = "Nome deve ter no maximo 120 caracteres")
     private String nome;
 
@@ -30,5 +33,6 @@ public class PacienteRequest {
     private String cpf;
 
     @Size(max = 20, message = "Telefone deve ter no maximo 20 caracteres")
+    @Pattern(regexp = "^$|^[0-9()+\\-\\s]{8,20}$", message = "Telefone deve conter apenas numeros, espacos, parenteses, hifen ou sinal de mais")
     private String telefone;
 }
