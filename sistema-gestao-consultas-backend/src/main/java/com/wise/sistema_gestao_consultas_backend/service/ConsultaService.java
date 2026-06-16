@@ -32,6 +32,7 @@ public class ConsultaService {
     private final UsuarioRepository usuarioRepository;
     private final AuthenticatedUserService authenticatedUserService;
     private final NotificacaoService notificacaoService;
+    private final ArquivoConsultaService arquivoConsultaService;
 
     public List<ConsultaResponse> listarTodas() {
         return listarConsultasComPermissao()
@@ -171,6 +172,7 @@ public class ConsultaService {
 
     public void deletar(Long id) {
         Consulta consulta = buscarConsultaComPermissao(id);
+        arquivoConsultaService.deletarArquivosDaConsultaSemNotificacao(consulta.getId());
         consultaRepository.delete(consulta);
         notificacaoService.notificar(
                 "Consulta excluida",
