@@ -16,6 +16,7 @@ public class AuthService {
     private final UsuarioService usuarioService;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
 
     public LoginResponse login(LoginRequest request) {
         Usuario usuario = usuarioService.buscarUsuarioAtivoPorEmail(request.getEmail());
@@ -25,22 +26,41 @@ public class AuthService {
         }
 
         Usuario usuarioAtualizado = usuarioService.atualizarUltimoLogin(usuario);
+        return gerarRespostaAutenticacao(usuarioAtualizado);
+    }
+
+    public LoginResponse refresh(String refreshToken) {
+        Usuario usuario = refreshTokenService.validarERotacionar(refreshToken);
+        return gerarRespostaAutenticacao(usuario);
+    }
+
+    public void logout(String refreshToken) {
+        refreshTokenService.revogar(refreshToken);
+    }
+
+    private LoginResponse gerarRespostaAutenticacao(Usuario usuario) {
         CustomUserDetails userDetails = new CustomUserDetails(
-                usuarioAtualizado.getId(),
-                usuarioAtualizado.getEmail(),
-                usuarioAtualizado.getSenha(),
-                usuarioAtualizado.getAtivo(),
-                usuarioAtualizado.getPerfil()
+                usuario.getId(),
+                usuario.getEmail(),
+                usuario.getSenha(),
+                usuario.getAtivo(),
+                usuario.getPerfil()
         );
-        String token = jwtService.gerarToken(userDetails);
+
+        String accessToken = jwtService.gerarToken(userDetails);
+        String refreshToken = refreshTokenService.criarParaUsuario(usuario);
 
         return new LoginResponse(
-                usuarioAtualizado.getId(),
-                usuarioAtualizado.getNome(),
-                usuarioAtualizado.getEmail(),
-                usuarioAtualizado.getPerfil(),
-                token,
-                "Bearer"
+                usuario.getId(),
+                usuario.getNome(),
+                usuario.getEmail(),
+                usuario.getPerfil(),
+                accessToken,
+                accessToken,
+                refreshToken,
+                "Bearer",
+                jwtService.getExpirationMs(),
+                refreshTokenService.getRefreshExpirationMs()
         );
     }
 }

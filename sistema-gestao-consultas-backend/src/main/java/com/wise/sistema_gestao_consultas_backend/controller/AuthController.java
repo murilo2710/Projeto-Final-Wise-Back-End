@@ -1,6 +1,8 @@
 package com.wise.sistema_gestao_consultas_backend.controller;
 
 import com.wise.sistema_gestao_consultas_backend.dto.request.LoginRequest;
+import com.wise.sistema_gestao_consultas_backend.dto.request.LogoutRequest;
+import com.wise.sistema_gestao_consultas_backend.dto.request.RefreshTokenRequest;
 import com.wise.sistema_gestao_consultas_backend.dto.request.RegisterRequest;
 import com.wise.sistema_gestao_consultas_backend.dto.response.LoginResponse;
 import com.wise.sistema_gestao_consultas_backend.dto.response.RegisterResponse;
@@ -55,5 +57,23 @@ public class AuthController {
         } catch (IllegalStateException exception) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, exception.getMessage());
         }
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<LoginResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        try {
+            LoginResponse response = authService.refresh(request.getRefreshToken());
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, exception.getMessage());
+        } catch (IllegalStateException exception) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, exception.getMessage());
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@Valid @RequestBody LogoutRequest request) {
+        authService.logout(request.getRefreshToken());
+        return ResponseEntity.noContent().build();
     }
 }

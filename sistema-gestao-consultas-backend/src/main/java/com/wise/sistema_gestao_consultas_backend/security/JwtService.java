@@ -37,6 +37,10 @@ public class JwtService {
         return username.equals(userDetails.getUsername()) && !tokenExpirado(token);
     }
 
+    public long getExpirationMs() {
+        return expirationMs;
+    }
+
     private String gerarToken(Map<String, Object> extraClaims, UserDetails userDetails) {
         Date agora = new Date();
         Date expiracao = new Date(agora.getTime() + expirationMs);

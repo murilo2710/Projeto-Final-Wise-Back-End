@@ -17,5 +17,9 @@ public class LoginResponse {
     private String email;
     private PerfilUsuario perfil;
     private String token;
+    private String accessToken;
+    private String refreshToken;
     private String tipoToken;
+    private Long expiresInMs;
+    private Long refreshExpiresInMs;
 }
