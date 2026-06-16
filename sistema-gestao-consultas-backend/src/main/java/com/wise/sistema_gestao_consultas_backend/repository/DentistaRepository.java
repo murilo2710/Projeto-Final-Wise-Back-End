@@ -13,4 +13,6 @@ public interface DentistaRepository extends JpaRepository<Dentista, Long> {
     Optional<Dentista> findByCro(String cro);
 
     boolean existsByEspecialidadesId(Long especialidadeId);
+
+    long countByAtivo(Boolean ativo);
 }

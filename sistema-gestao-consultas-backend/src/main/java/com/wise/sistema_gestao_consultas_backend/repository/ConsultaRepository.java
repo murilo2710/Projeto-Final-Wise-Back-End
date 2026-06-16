@@ -17,6 +17,8 @@ public interface ConsultaRepository extends JpaRepository<Consulta, Long> {
 
     boolean existsByUsuarioId(Long usuarioId);
 
+    long countByStatus(StatusConsulta status);
+
     List<Consulta> findByStatusAndDataFimBefore(StatusConsulta status, LocalDateTime dataFim);
 
     @Query("""

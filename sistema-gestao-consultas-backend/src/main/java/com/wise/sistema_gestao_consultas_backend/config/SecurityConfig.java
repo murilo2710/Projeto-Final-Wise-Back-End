@@ -73,6 +73,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/auth/register").hasRole("ADMIN")
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/usuarios/**").hasRole("ADMIN")
                         .requestMatchers("/pacientes/**").hasAnyRole("ADMIN", "DENTISTA")
                         .requestMatchers("/dentistas/**").hasAnyRole("ADMIN", "DENTISTA")

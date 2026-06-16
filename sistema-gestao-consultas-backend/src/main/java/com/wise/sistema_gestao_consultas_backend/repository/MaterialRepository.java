@@ -13,6 +13,14 @@ public interface MaterialRepository extends JpaRepository<Material, Long> {
 
     boolean existsByEspecialidadesId(Long especialidadeId);
 
+    long countByAtivo(Boolean ativo);
+
+    @Query("""
+            select count(m) from Material m
+            where m.quantidadeAtual <= m.quantidadeMinima
+            """)
+    long countBaixoEstoque();
+
     @Query("""
             select distinct m from Material m
             left join fetch m.especialidades e
