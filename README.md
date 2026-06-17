@@ -1,4 +1,4 @@
-# Sistema Odonto - Backend
+# Odonto Flow - Backend
 
 API REST para gestao de uma clinica odontologica, incluindo agenda de consultas,
 cadastros, autenticacao JWT, relatorios, controle de estoque, notificacoes em
@@ -8,7 +8,7 @@ Projeto Final do Programa Trainee da Wise Systems.
 
 ## Sobre o Projeto
 
-O backend do Sistema Odonto foi desenvolvido com Java 21 e Spring Boot 3.5.
+O backend do Odonto Flow foi desenvolvido com Java 21 e Spring Boot 3.5.
 A API e consumida por um frontend Angular e usa MySQL como banco relacional.
 
 O sistema trabalha com dois perfis principais:
