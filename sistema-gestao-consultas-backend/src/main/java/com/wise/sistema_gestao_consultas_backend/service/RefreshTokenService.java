@@ -26,7 +26,7 @@ public class RefreshTokenService {
 
     @Transactional
     public String criarParaUsuario(Usuario usuario) {
-        refreshTokenRepository.deleteByUsuarioId(usuario.getId());
+        refreshTokenRepository.revogarTodosAtivosDoUsuario(usuario.getId());
 
         String token = gerarTokenSeguro();
 

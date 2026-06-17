@@ -36,7 +36,7 @@ O sistema trabalha com dois perfis principais:
 ## Funcionalidades Principais
 
 - Login com JWT.
-- Refresh token com rotacao e logout com revogacao.
+- Refresh token com rotacao, logout com revogacao e apenas um refresh token ativo por usuario.
 - CRUD de usuarios com permissao exclusiva para `ADMIN`.
 - CRUD de pacientes.
 - CRUD de dentistas com vinculo a especialidades.
@@ -264,7 +264,8 @@ Body:
 ```
 
 O refresh token usa rotacao: ao renovar, o token antigo e revogado e um novo e
-gerado.
+gerado. Ao fazer login novamente com o mesmo usuario, refresh tokens ativos
+anteriores tambem sao revogados, mantendo apenas uma sessao renovavel por vez.
 
 ### Logout
 
@@ -480,7 +481,7 @@ Sistemaodontoback/
 - Controle de estoque de materiais.
 - Upload de arquivos em consultas.
 - Notificacoes em tempo real via WebSocket.
-- Refresh token com rotacao.
+- Refresh token com rotacao e sessao unica renovavel por usuario.
 - Finalizacao automatica de consultas vencidas.
 - Docker para backend e banco.
 
